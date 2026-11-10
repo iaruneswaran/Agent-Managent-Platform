@@ -1,7 +1,12 @@
 import React from 'react';
-import { Check, User, Play, Edit2, ShieldCheck, FileCheck, Lock } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 export const AgentPublishedView = ({ agentData, onOpenAgent, onBackToList }) => {
+  const isChat = agentData?.agentType === 'chat' || 
+    agentData?.type?.toLowerCase().includes('conversation') ||
+    agentData?.title?.toLowerCase().includes('chat') ||
+    agentData?.title?.toLowerCase().includes('ask anything');
+
   const isVerification = agentData?.agentType === 'verification' || 
     agentData?.type?.toLowerCase().includes('verification') ||
     agentData?.title?.toLowerCase().includes('kyc') ||
@@ -31,7 +36,7 @@ export const AgentPublishedView = ({ agentData, onOpenAgent, onBackToList }) => 
         alignItems: 'center',
         textAlign: 'center',
         boxShadow: 'none',
-        marginBottom: '20px'
+        marginBottom: 0
       }}>
         {/* Yellow Success Check Circle */}
         <div style={{
@@ -67,6 +72,8 @@ export const AgentPublishedView = ({ agentData, onOpenAgent, onBackToList }) => 
         }}>
           <strong>{agentData?.title || 'SBI Customer KYC & Document Verification Agent'}</strong> is now live and published. {isVerification 
             ? 'Users can now upload customer identity proofs (Aadhaar, PAN, Passport, DL) to run automated authenticity checks, OCR data extraction, and tamper detection before routing for compliance sign-off.'
+            : isChat 
+            ? 'Users can now open an interactive conversational chat to ask anything about banking, loans, compliance, and policies.'
             : 'It prepares report drafts for the designated reviewer; external submission happens only after approval.'}
         </p>
 
@@ -145,108 +152,6 @@ export const AgentPublishedView = ({ agentData, onOpenAgent, onBackToList }) => 
             <span>Open Agent & Use</span>
             <span>→</span>
           </button>
-        </div>
-      </div>
-
-      {/* 3 Bottom Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '20px',
-        width: '100%',
-        maxWidth: '960px'
-      }}>
-        {/* Card 1 */}
-        <div
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '24px 26px',
-            boxShadow: 'none',
-            transition: 'border-color 0.15s ease',
-            cursor: 'default'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#1757BF';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#E2E8F0';
-          }}
-        >
-          <div style={{ marginBottom: '12px' }}>
-            {isVerification ? <ShieldCheck size={22} color="#1757BF" strokeWidth={1.75} /> : <User size={20} color="#1757BF" strokeWidth={1.75} />}
-          </div>
-          <h4 style={{ fontSize: '16px', fontWeight: 500, color: '#0F172A', marginBottom: '6px' }}>
-            {isVerification ? 'Verification engine ready' : 'Review is ready'}
-          </h4>
-          <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, fontWeight: 400, margin: 0 }}>
-            {isVerification 
-              ? 'OCR demographic extraction, QR signature validation, and tamper detection are active for uploaded documents.'
-              : 'The agent is configured to route drafts to a designated reviewer for approval before external submission.'}
-          </p>
-        </div>
-
-        {/* Card 2 */}
-        <div
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '24px 26px',
-            boxShadow: 'none',
-            transition: 'border-color 0.15s ease',
-            cursor: 'default'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#1757BF';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#E2E8F0';
-          }}
-        >
-          <div style={{ marginBottom: '12px' }}>
-            {isVerification ? <FileCheck size={22} color="#1757BF" strokeWidth={1.75} /> : <Play size={20} color="#1757BF" strokeWidth={1.75} />}
-          </div>
-          <h4 style={{ fontSize: '16px', fontWeight: 500, color: '#0F172A', marginBottom: '6px' }}>
-            {isVerification ? 'Multi-document support' : 'Sample test passed'}
-          </h4>
-          <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, fontWeight: 400, margin: 0 }}>
-            {isVerification 
-              ? 'Pre-loaded with sample PAN, Aadhaar, and DL proofs to test instant automated verification and fraud detection.'
-              : 'Review the saved sample test. Sample results are not evidence of live report accuracy.'}
-          </p>
-        </div>
-
-        {/* Card 3 */}
-        <div
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            padding: '24px 26px',
-            boxShadow: 'none',
-            transition: 'border-color 0.15s ease',
-            cursor: 'default'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = '#1757BF';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = '#E2E8F0';
-          }}
-        >
-          <div style={{ marginBottom: '12px' }}>
-            {isVerification ? <Lock size={22} color="#1757BF" strokeWidth={1.75} /> : <Edit2 size={20} color="#1757BF" strokeWidth={1.75} />}
-          </div>
-          <h4 style={{ fontSize: '16px', fontWeight: 500, color: '#0F172A', marginBottom: '6px' }}>
-            {isVerification ? 'Human compliance sign-off' : 'Edit instructions anytime'}
-          </h4>
-          <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, fontWeight: 400, margin: 0 }}>
-            {isVerification
-              ? 'Compliance reviewers can inspect extracted fields, audit tamper flags, and provide final KYC sign-off.'
-              : 'Updated instructions require a new test and review before republication.'}
-          </p>
         </div>
       </div>
     </div>

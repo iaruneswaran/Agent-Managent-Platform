@@ -1,5 +1,23 @@
 export const INITIAL_AGENTS = [
   {
+    id: 'ask-anything-chat',
+    title: 'Ask Anything — AI Chat Assistant',
+    description: 'Conversational assistant like ChatGPT. Ask anything about banking, loans, KYC compliance, customer queries, policy breakdowns, or general knowledge.',
+    status: 'Published',
+    lastRun: 'Active now',
+    humanReviewRequired: false,
+    agentType: 'chat',
+    task: 'AI Chat Assistant (Ask Anything / Conversation)',
+    department: 'Enterprise AI & Knowledge',
+    reportType: 'Interactive AI Conversation',
+    purpose: 'Conversational ChatGPT-style assistant to ask anything, draft communications, and explore banking and policy questions.',
+    responsibility: 'Provide interactive, conversational responses, explanations, drafting, and calculations without image or video clutter.',
+    instructions: 'Engage in open conversational dialogue with users. Format answers with clear headings and bullet points. Strictly conversational.',
+    instructionNote: 'Ready for interactive conversational sessions.',
+    type: 'Conversational AI',
+    destination: 'Direct User Chat'
+  },
+  {
     id: 'sbi-kyc-verify',
     title: 'SBI Customer KYC & Document Verification Agent',
     description: 'Inspects and verifies uploaded customer documents (Aadhaar, PAN, Passport, DL) for authenticity, data extraction, and regulatory KYC compliance.',

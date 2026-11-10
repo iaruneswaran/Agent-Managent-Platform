@@ -4,7 +4,8 @@ import {
   Clock, 
   Plus, 
   MoreHorizontal, 
-  Pen 
+  Pen,
+  ChevronRight
 } from 'lucide-react';
 
 export const AgentListView = ({ agents, onSelectAgent, onCreateAgent, onEditAgent }) => {
@@ -199,13 +200,9 @@ export const AgentListView = ({ agents, onSelectAgent, onCreateAgent, onEditAgen
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           marginBottom: '24px'
         }}>
-          <span style={{ fontSize: '15px', fontWeight: 500, color: '#475569' }}>
-            Agents ({filteredAgents.length})
-          </span>
-
           <div style={{ position: 'relative', width: '320px' }}>
             <Search
               size={16}
@@ -235,131 +232,242 @@ export const AgentListView = ({ agents, onSelectAgent, onCreateAgent, onEditAgen
           </div>
         </div>
 
-        {/* Grid of Agent Cards: EXACTLY 3 IN A LINE */}
+        {/* Grid of Agent Cards: 4 IN A LINE */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-          gap: '20px'
+          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+          gap: '16px'
         }}>
-          {filteredAgents.map((agent) => (
-            <div
-              key={agent.id}
-              onClick={() => onSelectAgent(agent)}
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '20px',
-                border: '1px solid #E2E8F0',
-                padding: '24px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                minHeight: '230px',
-                transition: 'border-color 0.15s ease',
-                position: 'relative',
-                cursor: 'pointer'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#1757BF';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#E2E8F0';
-              }}
-            >
-              <div>
-                {/* Top Row: Status Badge on Left, Bare Pen Icon + More on Right */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '16px'
-                }}>
-                  {/* Status Indicator on Left: Clean text and indicator, NO badge or tags */}
-                  <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    color: agent.status.toLowerCase() === 'published' ? '#1757BF' : '#64748B'
-                  }}>
-                    <span style={{
-                      width: '7px',
-                      height: '7px',
-                      borderRadius: '50%',
-                      backgroundColor: agent.status.toLowerCase() === 'published' ? '#1757BF' : '#94A3B8'
-                    }} />
-                    <span>{agent.status}</span>
+          {filteredAgents.map((agent) => {
+            const isChatAgent = agent.agentType === 'chat' || 
+                                agent.id === 'ask-anything-chat' || 
+                                agent.title?.toLowerCase().includes('ask anything');
+
+            if (isChatAgent) {
+              return (
+                <div
+                  key={agent.id}
+                  onClick={() => onSelectAgent(agent)}
+                  style={{
+                    position: 'relative',
+                    overflow: 'hidden',
+                    borderRadius: '24px',
+                    border: '1px solid #E2E8F0',
+                    padding: '24px 20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: '220px',
+                    cursor: 'pointer',
+                    backgroundColor: '#FFFFFF',
+                    transition: 'border-color 0.15s ease',
+                    boxShadow: 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#1757BF';
+                    const link = e.currentTarget.querySelector('.chat-card-link');
+                    if (link) link.style.transform = 'translateX(4px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#E2E8F0';
+                    const link = e.currentTarget.querySelector('.chat-card-link');
+                    if (link) link.style.transform = 'translateX(0px)';
+                  }}
+                >
+                  {/* Organic Flowing Curves SVG Background — Brand Blue Palette */}
+                  <svg
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      pointerEvents: 'none',
+                      zIndex: 0
+                    }}
+                    viewBox="0 0 380 260"
+                    preserveAspectRatio="none"
+                  >
+                    <defs>
+                      <linearGradient id="chatBgBase" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FFFFFF" />
+                        <stop offset="50%" stopColor="#F8FAFC" />
+                        <stop offset="100%" stopColor="#EFF6FF" />
+                      </linearGradient>
+
+                      <linearGradient id="chatBlueSweep" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
+                        <stop offset="60%" stopColor="#E0F2FE" stopOpacity="0.75" />
+                        <stop offset="100%" stopColor="#BAE6FD" stopOpacity="0.55" />
+                      </linearGradient>
+
+                      <linearGradient id="chatFrontWave" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#0F387A" />
+                        <stop offset="35%" stopColor="#1757BF" />
+                        <stop offset="70%" stopColor="#2563EB" />
+                        <stop offset="100%" stopColor="#38BDF8" />
+                      </linearGradient>
+                    </defs>
+
+                    <rect width="380" height="260" fill="url(#chatBgBase)" />
+
+                    <path
+                      d="M 230 0 C 275 45 345 105 380 185 L 380 0 Z"
+                      fill="url(#chatBlueSweep)"
+                    />
+
+                    <path
+                      d="M 0 168 C 105 158 240 195 310 260 L 0 260 Z"
+                      fill="url(#chatFrontWave)"
+                    />
+                  </svg>
+
+                  {/* Top Content: Title */}
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    {/* Title */}
+                    <h3 style={{
+                      fontSize: '22px',
+                      fontWeight: 600,
+                      color: '#1757BF',
+                      letterSpacing: '-0.3px',
+                      margin: 0,
+                      lineHeight: 1.3
+                    }}>
+                      Ask Anything
+                    </h3>
+                    <div style={{
+                      fontSize: '13px',
+                      fontWeight: 500,
+                      color: '#64748B',
+                      marginTop: '4px'
+                    }}>
+                      AI Chat Assistant
+                    </div>
                   </div>
 
-                  {/* Actions on Right */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-
-                    {/* Edit button: Bare Pen icon (no circle) */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEditAgent(agent);
-                      }}
-                      title="Edit agent"
+                  {/* Bottom Action Link */}
+                  <div style={{ position: 'relative', zIndex: 1, marginTop: 'auto', paddingTop: '28px' }}>
+                    <div
+                      className="chat-card-link"
                       style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#64748B',
-                        cursor: 'pointer',
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '4px',
-                        transition: 'color 0.15s'
+                        gap: '6px',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        color: '#FFFFFF',
+                        transition: 'transform 0.15s ease'
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = '#0F172A'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = '#64748B'}
                     >
-                      <Pen size={16} />
-                    </button>
-
-                    {/* Three dots button */}
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      title="Options"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#94A3B8',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '4px',
-                        transition: 'color 0.15s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = '#0F172A'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = '#94A3B8'}
-                    >
-                      <MoreHorizontal size={17} />
-                    </button>
+                      <span>Start chat</span>
+                      <ChevronRight size={16} strokeWidth={2.5} color="#FFFFFF" />
+                    </div>
                   </div>
                 </div>
+              );
+            }
+
+            return (
+              <div
+                key={agent.id}
+                onClick={() => onSelectAgent(agent)}
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  border: '1px solid #E2E8F0',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: '220px',
+                  transition: 'border-color 0.15s ease',
+                  position: 'relative',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#1757BF';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#E2E8F0';
+                }}
+              >
+                <div>
+                  {/* Top Row: Actions on Right (Edit Pen + More) */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    marginBottom: '10px'
+                  }}>
+                    {/* Actions on Right */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+
+                      {/* Edit button: Bare Pen icon (no circle) */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditAgent(agent);
+                        }}
+                        title="Edit agent"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#64748B',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '4px',
+                          transition: 'color 0.15s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#0F172A'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#64748B'}
+                      >
+                        <Pen size={16} />
+                      </button>
+
+                      {/* Three dots button */}
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        title="Options"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#94A3B8',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '4px',
+                          transition: 'color 0.15s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#0F172A'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#94A3B8'}
+                      >
+                        <MoreHorizontal size={17} />
+                      </button>
+                    </div>
+                  </div>
 
                 {/* Title */}
                 <h3 style={{
-                  fontSize: '18px',
-                  fontWeight: 500,
+                  fontSize: '16px',
+                  fontWeight: 600,
                   color: '#0F172A',
                   letterSpacing: '-0.2px',
-                  marginBottom: '10px',
-                  lineHeight: 1.4
+                  marginBottom: '8px',
+                  lineHeight: 1.35
                 }}>
                   {agent.title}
                 </h3>
 
                 {/* Description */}
                 <p style={{
-                  fontSize: '14px',
+                  fontSize: '13px',
                   color: '#475569',
-                  lineHeight: 1.6,
+                  lineHeight: 1.5,
                   fontWeight: 400,
-                  marginBottom: '18px'
+                  marginBottom: '14px'
                 }}>
                   {agent.description}
                 </p>
@@ -382,7 +490,8 @@ export const AgentListView = ({ agents, onSelectAgent, onCreateAgent, onEditAgen
                 </div>
               </div>
             </div>
-          ))}
+          );
+        })}
 
           {/* 6th Card: Create a new agent card */}
           {filter === 'all' && (
@@ -390,15 +499,15 @@ export const AgentListView = ({ agents, onSelectAgent, onCreateAgent, onEditAgen
               onClick={onCreateAgent}
               style={{
                 backgroundColor: '#FFFFFF',
-                borderRadius: '20px',
+                borderRadius: '16px',
                 border: '1.5px dashed #CBD5E1',
-                padding: '32px 24px',
+                padding: '24px 18px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 textAlign: 'center',
-                minHeight: '230px',
+                minHeight: '220px',
                 cursor: 'pointer',
                 transition: 'border-color 0.15s ease'
               }}

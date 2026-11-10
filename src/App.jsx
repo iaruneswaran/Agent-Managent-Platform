@@ -19,7 +19,7 @@ export default function App() {
   // Navigation handlers
   const handleSelectAgent = (agent) => {
     setCurrentAgent(agent);
-    setWorkspace(agent.department.includes('Retail Banking') ? 'SBI — Retail Banking Division' : agent.department);
+    setWorkspace(agent?.department?.includes?.('Retail Banking') ? 'SBI — Retail Banking Division' : (agent?.department || 'SBI — Retail Banking Division'));
     setCurrentScreen('use_agent');
   };
 

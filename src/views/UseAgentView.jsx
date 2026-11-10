@@ -7,9 +7,22 @@ import {
 import { REPORT_DATA_BY_MONTH, MOCK_VERIFICATION_DOCUMENTS } from '../data/mockData';
 import { AriaAvatar } from '../components/AriaAvatar';
 import { AppDropdown } from '../components/AppDropdown';
-import { AppDatePicker } from '../components/AppDatePicker';
+import { AppDatePicker, AppDateRangePicker } from '../components/AppDatePicker';
+import { ChatAgentView } from './ChatAgentView';
 
 export const UseAgentView = ({ agentData, onBackToList }) => {
+  // Determine if this is an AI Chat / Conversational agent
+  const isChat = agentData?.agentType === 'chat' || 
+    agentData?.task?.toLowerCase().includes('chat') ||
+    agentData?.task?.toLowerCase().includes('conversation') ||
+    agentData?.type?.toLowerCase().includes('conversation') ||
+    agentData?.title?.toLowerCase().includes('ask anything') ||
+    agentData?.title?.toLowerCase().includes('chat');
+
+  if (isChat) {
+    return <ChatAgentView agentData={agentData} onBackToList={onBackToList} />;
+  }
+
   // Determine if this is a Document Verification agent or a Report agent
   const isVerification = agentData?.agentType === 'verification' || 
     agentData?.type?.toLowerCase().includes('verification') ||
@@ -68,60 +81,78 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
 
   // Upload Custom Document
   const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-    const isImage = file.type.startsWith('image/');
-    if (isImage) {
-      const url = URL.createObjectURL(file);
+    const firstImage = files.find((f) => f.type.startsWith('image/'));
+    if (firstImage) {
+      const url = URL.createObjectURL(firstImage);
       setCustomFilePreview(url);
     } else {
       setCustomFilePreview(null);
     }
 
-    const newDoc = {
-      id: `custom-doc-${Date.now()}`,
-      fileName: file.name,
-      docType: file.name.toLowerCase().includes('pan') ? 'PAN Card' : 
-               file.name.toLowerCase().includes('aadhaar') ? 'Aadhaar Card' : 
-               file.name.toLowerCase().includes('passport') ? 'Passport' : 
-               file.name.toLowerCase().includes('driving') || file.name.toLowerCase().includes('license') ? 'Driving License' : 'Identity Document',
-      category: 'Identity Proof',
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      status: 'Verified',
-      confidence: '98.5%',
-      uploadedAt: 'Just now',
-      applicantName: 'Arun Kumar Eswaran',
-      accountNumber: 'SBI Acc #90481239841',
-      extractedData: {
-        fullName: 'Arun Kumar Eswaran',
-        documentNumber: 'Abcde8921K',
-        dateOfBirth: '29/10/1992',
-        fatherName: 'Eswaran K',
-        issuingAuthority: 'Authorized Issuing Authority',
-        validity: 'Valid & Active',
-        formatValid: true
-      },
-      securityChecks: [
-        { name: 'Format validation', status: 'Passed', detail: 'Valid government document layout and font standards detected' },
-        { name: 'QR cryptographic signature', status: 'Passed', detail: 'Signed by authorized issuing certificate' },
-        { name: 'Tamper detection', status: 'Passed', detail: 'Zero pixel splicing or clone artifacts detected' },
-        { name: 'Core banking record match', status: 'Passed', detail: 'Name and date of birth match SBI account record' }
-      ]
-    };
+    const newDocs = files.map((file, i) => {
+      const lower = file.name.toLowerCase();
+      const docType = lower.includes('pan') ? 'PAN Card' : 
+                      lower.includes('aadhaar') ? 'Aadhaar Card' : 
+                      lower.includes('passport') ? 'Passport' : 
+                      lower.includes('driving') || lower.includes('license') ? 'Driving License' : 
+                      lower.includes('bill') ? 'Utility Bill' : 
+                      lower.includes('salary') ? 'Salary Slip' : 
+                      lower.includes('statement') ? 'Bank Statement' : 'Identity Document';
+      return {
+        id: `custom-doc-${Date.now()}-${i}`,
+        fileName: file.name,
+        docType: docType,
+        category: 'Identity Proof',
+        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+        status: 'Verified',
+        confidence: '98.5%',
+        uploadedAt: 'Just now',
+        applicantName: 'Arun Kumar Eswaran',
+        accountNumber: 'SBI Acc #90481239841',
+        extractedData: {
+          fullName: 'Arun Kumar Eswaran',
+          documentNumber: 'Abcde8921K',
+          dateOfBirth: '29/10/1992',
+          fatherName: 'Eswaran K',
+          issuingAuthority: 'Authorized Issuing Authority',
+          validity: 'Valid & Active',
+          formatValid: true
+        },
+        securityChecks: [
+          { name: 'Format validation', status: 'Passed', detail: 'Valid government document layout and font standards detected' },
+          { name: 'QR cryptographic signature', status: 'Passed', detail: 'Signed by authorized issuing certificate' },
+          { name: 'Tamper detection', status: 'Passed', detail: 'Zero pixel splicing or clone artifacts detected' },
+          { name: 'Core banking record match', status: 'Passed', detail: 'Name and date of birth match SBI account record' }
+        ]
+      };
+    });
 
-    setDocumentsList((prev) => [newDoc, ...prev]);
+    setDocumentsList((prev) => [...newDocs, ...prev]);
     setActiveDocIndex(0);
     setHumanDecision('pending');
-    setReviewerNotes(`Uploaded document ${file.name} ready for verification.`);
+    setReviewerNotes(`Uploaded ${files.length} document(s) ready for verification.`);
     setVerifChatMessages((prev) => [
       ...prev,
       {
         id: Date.now(),
         sender: 'assistant',
-        text: `Uploaded "${file.name}" has been loaded as ${newDoc.docType}. Click "Verify Document" to initiate inspection.`
+        text: `Uploaded ${files.length} document(s). Selected "${newDocs[0].fileName}" (${newDocs[0].docType}). Ready to verify.`
       }
     ]);
+  };
+
+  const handleRemoveDoc = (e, indexToRemove) => {
+    e.stopPropagation();
+    setDocumentsList((prev) => {
+      const updated = prev.filter((_, idx) => idx !== indexToRemove);
+      if (activeDocIndex >= updated.length) {
+        setActiveDocIndex(Math.max(0, updated.length - 1));
+      }
+      return updated;
+    });
   };
 
   // Run Verification Action with Loading Animation
@@ -224,6 +255,21 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
   const [selectedScope, setSelectedScope] = useState('all');
   const [reportNotes, setReportNotes] = useState('');
   const [copied, setCopied] = useState(false);
+
+  const formatDisplayRange = (start, end) => {
+    if (!start && !end) return '';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const formatSingle = (dStr) => {
+      if (!dStr) return '';
+      const [y, m, d] = dStr.split('-').map(Number);
+      if (!y || !m || !d) return dStr;
+      return `${String(d).padStart(2, '0')} ${months[m - 1]} ${y}`;
+    };
+    if (start && end) {
+      return `${formatSingle(start)} – ${formatSingle(end)}`;
+    }
+    return formatSingle(start || end);
+  };
 
   const [chatMessages, setChatMessages] = useState([
     {
@@ -465,6 +511,7 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
                   <input
                     ref={fileInputRef}
                     type="file"
+                    multiple
                     accept="image/*,.pdf"
                     style={{ display: 'none' }}
                     onChange={handleFileUpload}
@@ -474,7 +521,7 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
                     style={{
                       border: '1px dashed #CBD5E1',
                       borderRadius: '12px',
-                      padding: '24px 20px',
+                      padding: '20px 20px',
                       textAlign: 'center',
                       backgroundColor: customFilePreview ? '#EFF6FF' : '#F8FAFC',
                       cursor: 'pointer',
@@ -483,37 +530,125 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
                     onMouseEnter={(e) => e.currentTarget.style.borderColor = '#1757BF'}
                     onMouseLeave={(e) => e.currentTarget.style.borderColor = '#CBD5E1'}
                   >
-                    <UploadCloud size={32} color="#1757BF" style={{ margin: '0 auto 10px' }} />
-                    <div style={{ fontSize: '14px', fontWeight: 500, color: '#0F172A', marginBottom: '4px' }}>
-                      {customFilePreview ? 'Custom document loaded (click to replace)' : 'Click to browse or drop customer document here'}
+                    <UploadCloud size={28} color="#1757BF" style={{ margin: '0 auto 8px' }} />
+                    <div style={{ fontSize: '14px', fontWeight: 500, color: '#0F172A', marginBottom: '3px' }}>
+                      {customFilePreview ? 'Custom document loaded (click to add/replace)' : 'Click to browse or drop documents here'}
                     </div>
-                    <div style={{ fontSize: '14px', color: '#64748B' }}>
-                      Supports PAN, Aadhaar, Passport, or DL in JPG, PNG, or PDF formats
+                    <div style={{ fontSize: '13px', color: '#64748B' }}>
+                      Supports PAN, Aadhaar, Passport, DL, Bills in JPG, PNG, or PDF (single or multiple)
                     </div>
                   </div>
                 </div>
 
-                {/* Selected File Card */}
-                <div style={{
-                  padding: '16px 20px',
-                  borderRadius: '12px',
-                  backgroundColor: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '16px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <FileText size={22} color="#1757BF" />
-                    <div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>
-                        Selected for verification: {currentDoc.fileName}
-                      </div>
-                      <div style={{ fontSize: '14px', color: '#64748B', marginTop: '2px' }}>
-                        Type: {currentDoc.docType} · Size: {currentDoc.size} · Linked: {currentDoc.accountNumber}
-                      </div>
-                    </div>
+                {/* Documents Queue - Simple Compact Cards */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 500, color: '#334155' }}>
+                      Documents ({documentsList.length})
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#94A3B8' }}>
+                      Click card to select for verification
+                    </span>
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                    gap: '10px',
+                    maxHeight: '230px',
+                    overflowY: 'auto',
+                    padding: '1px'
+                  }}>
+                    {documentsList.map((doc, idx) => {
+                      const isSelected = activeDocIndex === idx;
+                      return (
+                        <div
+                          key={doc.id || idx}
+                          onClick={() => {
+                            setActiveDocIndex(idx);
+                            setHumanDecision('pending');
+                            setCustomFilePreview(null);
+                          }}
+                          style={{
+                            padding: '10px 14px',
+                            borderRadius: '10px',
+                            backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF',
+                            border: isSelected ? '1.5px solid #1757BF' : '1px solid #E2E8F0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '10px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            boxShadow: 'none'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) e.currentTarget.style.borderColor = '#94A3B8';
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) e.currentTarget.style.borderColor = '#E2E8F0';
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                            <div style={{
+                              width: '30px',
+                              height: '30px',
+                              borderRadius: '6px',
+                              backgroundColor: isSelected ? '#1757BF' : '#F1F5F9',
+                              color: isSelected ? '#FFFFFF' : '#64748B',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0
+                            }}>
+                              <FileText size={16} />
+                            </div>
+
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{
+                                fontSize: '13px',
+                                fontWeight: isSelected ? 600 : 500,
+                                color: isSelected ? '#0F172A' : '#334155',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }} title={doc.fileName}>
+                                {doc.fileName}
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+                                {doc.size}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                            {documentsList.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleRemoveDoc(e, idx)}
+                                title="Remove document"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#94A3B8',
+                                  cursor: 'pointer',
+                                  padding: '4px',
+                                  borderRadius: '4px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'color 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.color = '#EF4444'}
+                                onMouseLeave={(e) => e.currentTarget.style.color = '#94A3B8'}
+                              >
+                                <X size={13} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -604,7 +739,7 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
                   gap: '12px'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    {documentsList.slice(0, 3).map((doc, idx) => {
+                    {documentsList.map((doc, idx) => {
                       const isSelected = activeDocIndex === idx;
                       return (
                         <button
@@ -1073,30 +1208,115 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
                 backgroundColor: '#FFFFFF',
                 borderRadius: '16px',
                 border: '1px solid #E2E8F0',
-                padding: '32px',
+                padding: '28px 32px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px',
-                minHeight: '672px'
+                minHeight: '672px',
+                boxShadow: 'none'
               }}>
-                <div>
-                  <h2 style={{ fontSize: '20px', fontWeight: 500, color: '#0F172A', margin: 0 }}>
-                    Configure Period & Parameters for Report
-                  </h2>
+                {/* Header Row: Title on Left, Date Selection Action on Right Side Top */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '20px',
+                  flexWrap: 'wrap',
+                  paddingBottom: '20px',
+                  borderBottom: '1px solid #F1F5F9'
+                }}>
+                  <div>
+                    <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#0F172A', margin: 0, letterSpacing: '-0.2px' }}>
+                      Configure Period & Parameters for Report
+                    </h2>
+                    <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
+                      Set your reporting scope and period before initiating generation.
+                    </p>
+                  </div>
+
+                  {/* Right Side Top: Date Selection Action */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <AppDateRangePicker
+                      startDate={customStartDate}
+                      endDate={customEndDate}
+                      width="320px"
+                      onChange={({ startDate, endDate, label }) => {
+                        setCustomStartDate(startDate);
+                        setCustomEndDate(endDate);
+                        if (label && REPORT_DATA_BY_MONTH[label]) {
+                          setSelectedMonth(label);
+                          setRangeType('month');
+                        } else {
+                          const [y, m] = startDate.split('-').map(Number);
+                          const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                          const fullMonthName = `${monthNames[m - 1]} ${y}`;
+                          if (REPORT_DATA_BY_MONTH[fullMonthName]) {
+                            setSelectedMonth(fullMonthName);
+                          }
+                          setRangeType('custom');
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
 
-                {/* Month & Year Selection */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 500, color: '#334155', marginBottom: '8px' }}>
-                    Select reporting month & year:
-                  </label>
-                  <AppDropdown
-                    value={selectedMonth}
-                    onChange={(m) => setSelectedMonth(m)}
-                    options={['September 2026', 'August 2026', 'July 2026']}
-                    icon={<Calendar size={15} color="#64748B" />}
-                    width="240px"
-                  />
+                {/* Below: Selected Agent Detail Bit */}
+                <div style={{
+                  backgroundColor: '#F8FAFC',
+                  borderRadius: '12px',
+                  border: '1px solid #E2E8F0',
+                  padding: '20px 22px'
+                }}>
+                  <div style={{
+                    marginBottom: '14px',
+                    paddingBottom: '10px',
+                    borderBottom: '1px solid #E2E8F0'
+                  }}>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>
+                      Selected Agent Details
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px 24px', marginBottom: '14px' }}>
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginBottom: '4px' }}>
+                        Agent Title
+                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>
+                        {agentData?.title || 'State Bank of India — Monthly Home Loan Portfolio Report'}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginBottom: '4px' }}>
+                        Department / Function
+                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: 500, color: '#0F172A' }}>
+                        {agentData?.department || agentData?.task || 'Mortgage & Home Loan Operations'}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginBottom: '4px' }}>
+                        Reporting Period Selected
+                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#1757BF', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Calendar size={14} color="#1757BF" />
+                        <span>{rangeType === 'month' ? selectedMonth : `${customStartDate} to ${customEndDate}`}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {agentData?.description && (
+                    <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px', marginTop: '4px' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginBottom: '4px' }}>
+                        Scope & Instructions
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
+                        {agentData?.responsibility || agentData?.description}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Notes before generating report */}
@@ -1105,7 +1325,7 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
                     Notes (optional):
                   </label>
                   <textarea
-                    rows={3}
+                    rows={2}
                     value={reportNotes}
                     onChange={(e) => setReportNotes(e.target.value)}
                     placeholder="Enter reporting notes, auditor remarks, or scope justifications..."
@@ -1129,7 +1349,7 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
                 </div>
 
                 {/* Action Button to Generate Report */}
-                <div style={{ marginTop: 'auto', paddingTop: '16px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ marginTop: 'auto', paddingTop: '12px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     onClick={handleRunReportGeneration}
@@ -1158,7 +1378,7 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
                     <FileText size={16} color="#111827" />
                     <span>{isReportLoading ? 'Compiling Report...' : 'Generate Report'}</span>
                   </button>
-                  <span style={{ fontSize: '14px', color: '#64748B' }}>
+                  <span style={{ fontSize: '13px', color: '#64748B' }}>
                     Compiles sanctioned loans, disbursement amounts, and breakdown tables from core banking.
                   </span>
                 </div>
@@ -1192,17 +1412,27 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
                       <span>{rangeType === 'month' ? selectedMonth : `${customStartDate} to ${customEndDate}`}</span>
                     </div>
 
-                    <AppDropdown
-                      value={selectedMonth}
-                      size="sm"
-                      width="160px"
-                      icon={<Calendar size={13} color="#1757BF" />}
-                      options={['September 2026', 'August 2026', 'July 2026']}
-                      onChange={(m) => {
-                        setSelectedMonth(m);
-                        setRangeType('month');
+                    <AppDateRangePicker
+                      startDate={customStartDate}
+                      endDate={customEndDate}
+                      width="300px"
+                      onChange={({ startDate, endDate, label }) => {
+                        setCustomStartDate(startDate);
+                        setCustomEndDate(endDate);
+                        if (label && REPORT_DATA_BY_MONTH[label]) {
+                          setSelectedMonth(label);
+                          setRangeType('month');
+                        } else {
+                          const [y, m] = startDate.split('-').map(Number);
+                          const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                          const fullMonthName = `${monthNames[m - 1]} ${y}`;
+                          if (REPORT_DATA_BY_MONTH[fullMonthName]) {
+                            setSelectedMonth(fullMonthName);
+                          }
+                          setRangeType('custom');
+                        }
                         setIsReportLoading(true);
-                        setTimeout(() => setIsReportLoading(false), 1200);
+                        setTimeout(() => setIsReportLoading(false), 800);
                       }}
                     />
 

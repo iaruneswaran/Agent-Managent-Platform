@@ -1,17 +1,50 @@
 import React, { useState } from 'react';
-import { ChevronDown, ArrowRight, FileCheck, BarChart3, Sliders } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { AppDropdown } from '../components/AppDropdown';
 
 export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
+  const getInitialTask = () => {
+    if (agentData?.task) return agentData.task;
+    if (
+      agentData?.agentType === 'chat' ||
+      agentData?.title?.toLowerCase().includes('chat') ||
+      agentData?.title?.toLowerCase().includes('ask anything')
+    ) {
+      return 'AI Chat Assistant (Ask Anything / Conversation)';
+    }
+    if (
+      agentData?.agentType === 'verification' || 
+      agentData?.title?.toLowerCase().includes('kyc') || 
+      agentData?.title?.toLowerCase().includes('verification')
+    ) {
+      return 'Document & KYC Verification';
+    }
+    if (
+      agentData?.title?.toLowerCase().includes('discharge') || 
+      agentData?.title?.toLowerCase().includes('hospital') ||
+      agentData?.title?.toLowerCase().includes('icu')
+    ) {
+      return 'Hospital Discharge & Clinical Audit';
+    }
+    if (
+      agentData?.title?.toLowerCase().includes('report') || 
+      agentData?.title?.toLowerCase().includes('loan')
+    ) {
+      return 'Report Generation';
+    }
+    return 'Document & KYC Verification';
+  };
+
   const initialType = agentData?.agentType || 
     (agentData?.title?.toLowerCase().includes('report') ? 'report' : 'verification');
 
   const [agentType, setAgentType] = useState(initialType);
 
   const [formData, setFormData] = useState({
+    task: getInitialTask(),
     name: agentData?.title || 'SBI Customer KYC & Document Verification Agent',
     department: agentData?.department || 'Retail Banking — Compliance & KYC',
-    description: agentData?.description || 'Inspects and verifies uploaded customer documents (Aadhaar, PAN, Passport, DL) for authenticity, data extraction, and regulatory KYC compliance.',
+    description: agentData?.description || 'Inspects and verifies uploaded customer documents (PAN, Aadhaar, IDs, Bills) to verify authenticity, OCR data, and compliance.',
     responsibility: agentData?.responsibility || 'Inspect uploaded identity documents, perform OCR text and photo extraction, validate document number checksums, check for visual tampering or alteration, verify details against KYC guidelines, and flag any discrepancies for human compliance officer approval.'
   });
 
@@ -27,29 +60,78 @@ export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
     { id: 'human', label: 'Mandatory Human Compliance Reviewer Sign-Off', checked: true }
   ]);
 
-  const handleSelectTemplate = (type) => {
-    setAgentType(type);
-    if (type === 'verification') {
-      setFormData({
+  const TASK_OPTIONS = [
+    'AI Chat Assistant (Ask Anything / Conversation)',
+    'Document & KYC Verification',
+    'Report Generation',
+    'Loan Disbursement & Sanction Audit',
+    'Hospital Discharge & Clinical Audit',
+    'Custom Blank Agent'
+  ];
+
+  const handleTaskChange = (selectedTask) => {
+    if (selectedTask === 'AI Chat Assistant (Ask Anything / Conversation)') {
+      setAgentType('chat');
+      setFormData((prev) => ({
+        ...prev,
+        task: selectedTask,
+        name: 'Ask Anything — AI Chat Assistant',
+        department: 'Enterprise AI & Knowledge',
+        description: 'Conversational assistant like ChatGPT. Ask anything about banking, loans, KYC compliance, customer queries, and general knowledge.',
+        responsibility: 'Provide interactive, conversational responses, explanations, drafting, and calculations without image or video clutter.'
+      }));
+    } else if (selectedTask === 'Document & KYC Verification') {
+      setAgentType('verification');
+      setFormData((prev) => ({
+        ...prev,
+        task: selectedTask,
         name: 'SBI Customer KYC & Document Verification Agent',
         department: 'Retail Banking — Compliance & KYC',
-        description: 'Inspects and verifies uploaded customer documents (Aadhaar, PAN, Passport, DL) for authenticity, data extraction, and regulatory KYC compliance.',
+        description: 'Inspects and verifies uploaded customer documents (PAN, Aadhaar, IDs, Bills) to verify authenticity, OCR data, and compliance.',
         responsibility: 'Inspect uploaded identity documents, perform OCR text and photo extraction, validate document number checksums, check for visual tampering or alteration, verify details against KYC guidelines, and flag any discrepancies for human compliance officer approval.'
-      });
-    } else if (type === 'report') {
-      setFormData({
+      }));
+    } else if (selectedTask === 'Report Generation') {
+      setAgentType('report');
+      setFormData((prev) => ({
+        ...prev,
+        task: selectedTask,
         name: 'SBI Home Loan Monthly Report',
         department: 'Retail Banking — Home Finance',
-        description: 'Prepares monthly home-loan counts and disbursement totals for compliance review. Home loans only; excludes auto and land loans.',
+        description: 'Compiles monthly loan counts, financial disbursement totals, and portfolio reviews.',
         responsibility: 'Summarize the monthly home-loan portfolio, disbursements and repayment performance. Compare results with the previous month and highlight key changes. Use only approved source data, flag missing information and keep recommendations concise. Prepare reports for human review before submission.'
-      });
-    } else {
-      setFormData({
+      }));
+    } else if (selectedTask === 'Loan Disbursement & Sanction Audit') {
+      setAgentType('report');
+      setFormData((prev) => ({
+        ...prev,
+        task: selectedTask,
+        name: 'SBI Loan Disbursement & Sanctions Audit Agent',
+        department: 'Agricultural & Commercial Lending',
+        description: 'Compiles and cross-verifies monthly loan disbursement totals, sanction limits, and interest margins across branches.',
+        responsibility: 'Track sanctioned credit facilities, calculate monthly disbursed loan totals, identify high-exposure accounts, compare with previous quarter metrics, and flag compliance audit deviations.'
+      }));
+    } else if (selectedTask === 'Hospital Discharge & Clinical Audit') {
+      setAgentType('report');
+      setFormData((prev) => ({
+        ...prev,
+        task: selectedTask,
+        name: 'Apollo Hospital — Inpatient Discharge Summary',
+        department: 'Healthcare Operations',
+        description: 'Prepares weekly inpatient discharge summaries and bed occupancy reviews for authorized hospital reviewers.',
+        responsibility: 'Summarize weekly inpatient discharge counts, clinical reviewer approvals, and physician sign-offs. Validate medical record completeness before final archiving.'
+      }));
+    } else if (selectedTask === 'Custom Blank Agent') {
+      setAgentType('custom');
+      setFormData((prev) => ({
+        ...prev,
+        task: selectedTask,
         name: '',
-        department: 'Retail Banking',
+        department: 'Custom Operations',
         description: '',
         responsibility: ''
-      });
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, task: selectedTask }));
     }
   };
 
@@ -57,24 +139,13 @@ export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleDoc = (doc) => {
-    setSupportedDocs((prev) => 
-      prev.includes(doc) ? prev.filter((d) => d !== doc) : [...prev, doc]
-    );
-  };
-
-  const toggleRule = (id) => {
-    setVerificationRules((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, checked: !r.checked } : r))
-    );
-  };
-
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
     onPublish({
       ...agentData,
       title: formData.name || (agentType === 'verification' ? 'Document Verification Agent' : 'Custom Agent'),
-      department: formData.department,
+      task: formData.task,
+      department: formData.task,
       description: formData.description,
       responsibility: formData.responsibility,
       purpose: formData.description,
@@ -85,17 +156,6 @@ export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
       status: 'Published'
     });
   };
-
-  const allAvailableDocs = [
-    'Aadhaar Card',
-    'PAN Card',
-    'Passport',
-    'Driving License',
-    'Voter ID',
-    'Utility Bill',
-    'Bank Statement',
-    'Salary Slip'
-  ];
 
   return (
     <div className="animate-fade-in" style={{ width: '100%', minHeight: 'calc(100vh - 64px)', backgroundColor: '#EDF2F7' }}>
@@ -157,209 +217,8 @@ export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
           padding: '36px 24px',
           width: '100%'
         }}>
-
-          {/* Section 1: Purpose & Role Selection Cards (Full Width) */}
-          <div style={{ marginBottom: '32px', width: '100%' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: 500,
-              color: '#0F172A',
-              marginBottom: '12px'
-            }}>
-              Choose Agent Purpose & Role
-            </label>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '16px',
-              width: '100%'
-            }}>
-              {/* Card 1: Document & KYC Verification */}
-              <div
-                onClick={() => handleSelectTemplate('verification')}
-                style={{
-                  padding: '18px 20px',
-                  borderRadius: '12px',
-                  border: agentType === 'verification' ? '1.5px solid #1757BF' : '1px solid #E2E8F0',
-                  backgroundColor: agentType === 'verification' ? '#F8FAFC' : '#FFFFFF',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: '110px'
-                }}
-                onMouseEnter={(e) => {
-                  if (agentType !== 'verification') e.currentTarget.style.borderColor = '#CBD5E1';
-                }}
-                onMouseLeave={(e) => {
-                  if (agentType !== 'verification') e.currentTarget.style.borderColor = '#E2E8F0';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      backgroundColor: agentType === 'verification' ? '#1757BF' : '#F1F5F9',
-                      color: agentType === 'verification' ? '#FFFFFF' : '#475569',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <FileCheck size={17} />
-                    </div>
-                    <span style={{
-                      fontSize: '15px',
-                      fontWeight: 500,
-                      color: agentType === 'verification' ? '#1757BF' : '#0F172A'
-                    }}>
-                      Document & KYC Verification
-                    </span>
-                  </div>
-
-                  <div style={{
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '50%',
-                    border: agentType === 'verification' ? '5px solid #1757BF' : '1.5px solid #CBD5E1',
-                    backgroundColor: '#FFFFFF',
-                    flexShrink: 0
-                  }} />
-                </div>
-
-                <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                  Upload documents (PAN, Aadhaar, IDs, Bills) to verify authenticity, OCR data, and compliance.
-                </p>
-              </div>
-
-              {/* Card 2: Report Generation */}
-              <div
-                onClick={() => handleSelectTemplate('report')}
-                style={{
-                  padding: '18px 20px',
-                  borderRadius: '12px',
-                  border: agentType === 'report' ? '1.5px solid #1757BF' : '1px solid #E2E8F0',
-                  backgroundColor: agentType === 'report' ? '#F8FAFC' : '#FFFFFF',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: '110px'
-                }}
-                onMouseEnter={(e) => {
-                  if (agentType !== 'report') e.currentTarget.style.borderColor = '#CBD5E1';
-                }}
-                onMouseLeave={(e) => {
-                  if (agentType !== 'report') e.currentTarget.style.borderColor = '#E2E8F0';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      backgroundColor: agentType === 'report' ? '#1757BF' : '#F1F5F9',
-                      color: agentType === 'report' ? '#FFFFFF' : '#475569',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <BarChart3 size={17} />
-                    </div>
-                    <span style={{
-                      fontSize: '15px',
-                      fontWeight: 500,
-                      color: agentType === 'report' ? '#1757BF' : '#0F172A'
-                    }}>
-                      Report Generation
-                    </span>
-                  </div>
-
-                  <div style={{
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '50%',
-                    border: agentType === 'report' ? '5px solid #1757BF' : '1.5px solid #CBD5E1',
-                    backgroundColor: '#FFFFFF',
-                    flexShrink: 0
-                  }} />
-                </div>
-
-                <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                  Compiles monthly loan counts, financial disbursement totals, and portfolio reviews.
-                </p>
-              </div>
-
-              {/* Card 3: Custom Blank Agent */}
-              <div
-                onClick={() => handleSelectTemplate('custom')}
-                style={{
-                  padding: '18px 20px',
-                  borderRadius: '12px',
-                  border: agentType === 'custom' ? '1.5px solid #1757BF' : '1px solid #E2E8F0',
-                  backgroundColor: agentType === 'custom' ? '#F8FAFC' : '#FFFFFF',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: '110px'
-                }}
-                onMouseEnter={(e) => {
-                  if (agentType !== 'custom') e.currentTarget.style.borderColor = '#CBD5E1';
-                }}
-                onMouseLeave={(e) => {
-                  if (agentType !== 'custom') e.currentTarget.style.borderColor = '#E2E8F0';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      backgroundColor: agentType === 'custom' ? '#1757BF' : '#F1F5F9',
-                      color: agentType === 'custom' ? '#FFFFFF' : '#475569',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <Sliders size={17} />
-                    </div>
-                    <span style={{
-                      fontSize: '15px',
-                      fontWeight: 500,
-                      color: agentType === 'custom' ? '#1757BF' : '#0F172A'
-                    }}>
-                      Custom Blank Agent
-                    </span>
-                  </div>
-
-                  <div style={{
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '50%',
-                    border: agentType === 'custom' ? '5px solid #1757BF' : '1.5px solid #CBD5E1',
-                    backgroundColor: '#FFFFFF',
-                    flexShrink: 0
-                  }} />
-                </div>
-
-                <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                  Define your own agent title, custom instructions, and custom operational tasks.
-                </p>
-              </div>
-            </div>
-          </div>
-
           <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-            {/* Section 2: Form Fields (Balanced 2-Column Grid) */}
+            {/* Section: Form Fields (Balanced 2-Column Grid) */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -368,8 +227,8 @@ export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
               width: '100%',
               marginBottom: '32px'
             }}>
-              {/* Left Column: Name, Department, Description */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              {/* Left Column: Name, Select Agent (What to be done), Description */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {/* Field 1: Agent Name */}
                 <div>
                   <label style={{
@@ -402,7 +261,7 @@ export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
                   />
                 </div>
 
-                {/* Field 2: Department */}
+                {/* Field 2: Select Agent (What to be done) */}
                 <div>
                   <label style={{
                     display: 'block',
@@ -411,22 +270,13 @@ export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
                     color: '#0F172A',
                     marginBottom: '8px'
                   }}>
-                    Department
+                    Select Agent (What to be done)
                   </label>
                   <AppDropdown
-                    value={formData.department}
-                    onChange={(val) => handleChange('department', val)}
+                    value={formData.task}
+                    onChange={handleTaskChange}
                     width="100%"
-                    options={[
-                      'Retail Banking — Compliance & KYC',
-                      'Retail Banking',
-                      'Customer Onboarding & Verification',
-                      'Retail Banking — Home Finance',
-                      'Retail Banking — Vehicle Finance',
-                      'Agricultural & Commercial Lending',
-                      'Healthcare Operations',
-                      'Critical Care Administration'
-                    ]}
+                    options={TASK_OPTIONS}
                   />
                 </div>
 
@@ -464,7 +314,7 @@ export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
               </div>
 
               {/* Right Column: Responsibility & Instructions */}
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', height: '249px', maxHeight: '249px', alignSelf: 'start', boxSizing: 'border-box' }}>
                 <label style={{
                   display: 'block',
                   fontSize: '14px',
@@ -480,7 +330,9 @@ export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
                   onChange={(e) => handleChange('responsibility', e.target.value)}
                   style={{
                     width: '100%',
-                    height: '216px',
+                    flex: 1,
+                    minHeight: 0,
+                    boxSizing: 'border-box',
                     padding: '14px 16px',
                     borderRadius: '10px',
                     border: '1px solid #CBD5E1',
@@ -499,7 +351,7 @@ export const CreateAgentView = ({ agentData, onPublish, onCancel }) => {
               </div>
             </div>
 
-            {/* Section 3: Action Buttons Bar */}
+            {/* Action Buttons Bar */}
             <div style={{
               display: 'flex',
               alignItems: 'center',

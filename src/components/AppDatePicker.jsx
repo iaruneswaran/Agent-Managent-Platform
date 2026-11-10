@@ -446,3 +446,5 @@ export const AppDatePicker = ({
   );
 };
 
+export { AppDateRangePicker } from './AppDateRangePicker';
+

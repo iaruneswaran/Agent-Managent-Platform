@@ -82,7 +82,7 @@ export const ReviewAgentView = ({ agentData, onBack, onSaveDraft, onPublish, onE
             {agentData.title}
           </span>
           <span style={{ fontSize: '14px', color: '#6B7280', fontWeight: 400 }}>
-            {agentData.department}
+            {agentData.task || agentData.department}
           </span>
         </div>
 
@@ -148,8 +148,8 @@ export const ReviewAgentView = ({ agentData, onBack, onSaveDraft, onPublish, onE
             <span style={{ color: '#6B7280', fontSize: '14px', fontWeight: 400 }}>Agent name</span>
             <span style={{ color: '#111827', fontWeight: 400 }}>{agentData.title}</span>
 
-            <span style={{ color: '#6B7280', fontSize: '14px', fontWeight: 400 }}>Department</span>
-            <span style={{ color: '#111827', fontWeight: 400 }}>{agentData.department}</span>
+            <span style={{ color: '#6B7280', fontSize: '14px', fontWeight: 400 }}>Agent task</span>
+            <span style={{ color: '#111827', fontWeight: 400 }}>{agentData.task || agentData.department}</span>
 
             <span style={{ color: '#6B7280', fontSize: '14px', fontWeight: 400 }}>Purpose</span>
             <span style={{ color: '#111827', lineHeight: 1.55, fontWeight: 400 }}>
