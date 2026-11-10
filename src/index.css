@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bg-primary: #F8F9FA;
+  --bg-card: #FFFFFF;
+  --accent-yellow: #EEFA26;
+  --accent-yellow-hover: #E3EF1E;
+  --accent-yellow-light: #F7FCE1;
+  --accent-yellow-muted: #F3F982;
+  --text-dark: #111827;
+  --text-muted: #6B7280;
+  --text-subtle: #9CA3AF;
+  --border-light: #E5E7EB;
+  --border-card: #EAECF0;
+  --header-dark: #121316;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+b, strong, h1, h2, h3, h4, h5, h6, th, button, label {
+  font-weight: 500;
+}
+
+p, span, div, input, select, textarea, td {
+  font-weight: 400;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  min-height: 100vh;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+/* Hide scrollbar across entire app for all browsers while maintaining scrolling functionality */
+html,
+body,
+* {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+/* Prevent unwanted focus rings, black outlines, or strokes on buttons */
+button {
+  outline: none !important;
+}
+
+button:focus,
+button:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-once {
+  animation: spinSlow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Full-width Line Loading Animation */
+@keyframes reportLineAnimation {
+  0% {
+    left: -40%;
+    width: 35%;
+  }
+  50% {
+    left: 25%;
+    width: 60%;
+  }
+  100% {
+    left: 100%;
+    width: 35%;
+  }
+}
+
+.report-line-loader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #EEFA26, #1757BF, #EEFA26, transparent);
+  box-shadow: 0 0 12px rgba(238, 250, 38, 0.85);
+  animation: reportLineAnimation 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Print styles for PDF simulation */
+@media print {
+  header, .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+}
