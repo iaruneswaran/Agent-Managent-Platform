@@ -53,6 +53,20 @@ export default function App() {
     setCurrentScreen('create_agent');
   };
 
+  const handleDeleteAgent = (agentId) => {
+    setAgents((prev) => prev.filter((a) => a.id !== agentId));
+  };
+
+  const handleDuplicateAgent = (agent) => {
+    const duplicate = {
+      ...agent,
+      id: `agent-${Date.now()}`,
+      title: `${agent.title} (Copy)`,
+      lastRun: 'Not yet run'
+    };
+    setAgents((prev) => [duplicate, ...prev]);
+  };
+
   const handlePublishFromCreate = (updatedAgent) => {
     const publishedAgent = {
       ...(updatedAgent || currentAgent),
@@ -87,6 +101,8 @@ export default function App() {
             onSelectAgent={handleSelectAgent}
             onCreateAgent={handleCreateNew}
             onEditAgent={handleEditAgent}
+            onDeleteAgent={handleDeleteAgent}
+            onDuplicateAgent={handleDuplicateAgent}
           />
         )}
 

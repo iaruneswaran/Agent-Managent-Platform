@@ -8,9 +8,11 @@ export const AppDropdown = ({
   placeholder = 'Select option',
   icon: Icon,
   width = 'auto',
+  height = null,
   size = 'md',
   align = 'left',
-  style = {}
+  style = {},
+  buttonStyle = {}
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -60,6 +62,7 @@ export const AppDropdown = ({
         width: width,
         userSelect: 'none',
         fontFamily: 'inherit',
+        zIndex: isOpen ? 9999 : 1,
         ...style
       }}
     >
@@ -69,21 +72,24 @@ export const AppDropdown = ({
         onClick={() => setIsOpen((prev) => !prev)}
         style={{
           width: '100%',
+          height: height || (isSmall ? '35px' : 'auto'),
+          boxSizing: 'border-box',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '10px',
-          padding: isSmall ? '6px 12px' : '10px 14px',
-          borderRadius: isSmall ? '8px' : '8px',
+          padding: isSmall ? '0 12px' : '10px 14px',
+          borderRadius: '8px',
           border: isOpen ? '1px solid #1757BF' : '1px solid #CBD5E1',
           backgroundColor: '#FFFFFF',
-          fontSize: '14px',
+          fontSize: isSmall ? '13px' : '14px',
           fontWeight: 500,
           color: '#0F172A',
           cursor: 'pointer',
           outline: 'none',
           boxShadow: isOpen ? '0 0 0 1px #1757BF' : 'none',
-          transition: 'all 0.15s ease'
+          transition: 'all 0.15s ease',
+          ...buttonStyle
         }}
         onMouseEnter={(e) => {
           if (!isOpen) e.currentTarget.style.borderColor = '#94A3B8';
@@ -132,9 +138,9 @@ export const AppDropdown = ({
             backgroundColor: '#FFFFFF',
             borderRadius: '10px',
             border: '1px solid #E2E8F0',
-            boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
+            boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06)',
             padding: '5px',
-            zIndex: 100,
+            zIndex: 10000,
             maxHeight: '260px',
             overflowY: 'auto'
           }}

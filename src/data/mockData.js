@@ -268,3 +268,50 @@ export const REPORT_DATA_BY_MONTH = {
     currency: 'INR'
   }
 };
+
+export const INITIAL_PROJECTS = [
+  {
+    id: 'proj-1',
+    title: 'Personal care brand enters South Asia’s smaller cities',
+    description: 'A mid-sized European skincare company has stalled in metro markets. It wants to grow in Tier-2 and Tier-3 cities across South Asia but doesn’t know which cities, price points or channels to prioritize.',
+    category: 'Market Entry & Expansion',
+    tag: 'GTM Strategy',
+    status: 'In Progress',
+    updatedAt: '2 hours ago',
+    activeAgentsCount: 3,
+    lead: 'Strategic Planning Team'
+  },
+  {
+    id: 'proj-2',
+    title: 'Customer Dynamics: who is buying, and why',
+    description: 'Buyer segments, purchase drivers and channel behaviour behind current demand.',
+    category: 'Customer Intelligence',
+    tag: 'Consumer Research',
+    status: 'Active',
+    updatedAt: 'Yesterday',
+    activeAgentsCount: 2,
+    lead: 'Consumer Insights Division'
+  },
+  {
+    id: 'proj-3',
+    title: 'Competitive Benchmark & Positioning',
+    description: 'Comparing rivals on share, price, capability and brand position.',
+    category: 'Competitive Strategy',
+    tag: 'Benchmarking',
+    status: 'In Review',
+    updatedAt: '3 days ago',
+    activeAgentsCount: 4,
+    lead: 'Market Analytics Unit'
+  },
+  {
+    id: 'proj-4',
+    title: 'Tech-Enabled Go-to-Market Roadmap',
+    description: 'Tools, data and automation needed to run go-to-market at scale.',
+    category: 'Technology & Automation',
+    tag: 'Roadmap & Ops',
+    status: 'Planning',
+    updatedAt: '4 days ago',
+    activeAgentsCount: 2,
+    lead: 'Digital Transformation Group'
+  }
+];

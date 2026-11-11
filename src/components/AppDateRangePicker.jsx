@@ -11,11 +11,11 @@ const DAYS_OF_WEEK = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 const YEARS = [2023, 2024, 2025, 2026, 2027, 2028];
 
 const PRESETS = [
+  { label: '11 Oct – 30 Oct 2026', start: '2026-10-11', end: '2026-10-30', monthName: 'Custom Period' },
+  { label: 'October 2026', start: '2026-10-01', end: '2026-10-31', monthName: 'October 2026' },
   { label: 'September 2026', start: '2026-09-01', end: '2026-09-30', monthName: 'September 2026' },
   { label: 'August 2026', start: '2026-08-01', end: '2026-08-31', monthName: 'August 2026' },
-  { label: 'July 2026', start: '2026-07-01', end: '2026-07-31', monthName: 'July 2026' },
-  { label: 'Last 30 Days', start: '2026-08-15', end: '2026-09-15', monthName: 'Custom Period' },
-  { label: 'Quarter 3 (Jul – Sep 2026)', start: '2026-07-01', end: '2026-09-30', monthName: 'Q3 2026' }
+  { label: 'Last 30 Days', start: '2026-09-15', end: '2026-10-15', monthName: 'Custom Period' }
 ];
 
 const formatDateStr = (year, month, day) => {
@@ -30,11 +30,16 @@ const formatDisplayDate = (dateStr) => {
 };
 
 export const AppDateRangePicker = ({
-  startDate = '2026-09-01',
-  endDate = '2026-09-30',
+  startDate = '2026-10-11',
+  endDate = '2026-10-30',
   onChange,
   placeholder = 'Select date range',
-  width = '320px'
+  width = '320px',
+  height = null,
+  size = 'md',
+  inline = false,
+  style = {},
+  buttonStyle = {}
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -141,16 +146,27 @@ export const AppDateRangePicker = ({
       setTempEnd(null);
       setSelectionStage('end');
     } else if (selectionStage === 'end') {
+      let finalStart = tempStart;
+      let finalEnd = dateStr;
       if (!tempStart) {
         setTempStart(dateStr);
         setTempEnd(null);
+        return;
       } else if (dateStr < tempStart) {
-        setTempStart(dateStr);
-        setTempEnd(tempStart);
-        setSelectionStage('complete');
-      } else {
-        setTempEnd(dateStr);
-        setSelectionStage('complete');
+        finalStart = dateStr;
+        finalEnd = tempStart;
+      }
+      setTempStart(finalStart);
+      setTempEnd(finalEnd);
+      setSelectionStage('complete');
+      if (inline && onChange) {
+        const matchedPreset = PRESETS.find(p => p.start === finalStart && p.end === finalEnd);
+        const label = matchedPreset ? matchedPreset.monthName : `${formatDisplayDate(finalStart)} – ${formatDisplayDate(finalEnd)}`;
+        onChange({
+          startDate: finalStart,
+          endDate: finalEnd,
+          label
+        });
       }
     }
   };
@@ -169,7 +185,9 @@ export const AppDateRangePicker = ({
         label
       });
     }
-    setIsOpen(false);
+    if (!inline) {
+      setIsOpen(false);
+    }
   };
 
   // Apply Preset
@@ -183,6 +201,13 @@ export const AppDateRangePicker = ({
       setLeftYear(y);
       setRightMonth(m % 12);
       setRightYear(m === 12 ? y + 1 : y);
+    }
+    if (inline && onChange) {
+      onChange({
+        startDate: preset.start,
+        endDate: preset.end,
+        label: preset.monthName
+      });
     }
   };
 
@@ -273,54 +298,78 @@ export const AppDateRangePicker = ({
         position: 'relative',
         width: width,
         userSelect: 'none',
-        fontFamily: 'inherit'
+        fontFamily: 'inherit',
+        zIndex: isOpen ? 9999 : 1,
+        ...style
       }}
     >
       {/* Trigger Button */}
-      <button
-        type="button"
-        onClick={() => {
-          setIsOpen((prev) => !prev);
-          setTempStart(startDate);
-          setTempEnd(endDate);
-          setSelectionStage('complete');
-        }}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-          padding: '10px 16px',
-          borderRadius: '8px',
-          border: isOpen ? '1px solid #1757BF' : '1px solid #CBD5E1',
-          backgroundColor: '#FFFFFF',
-          fontSize: '14px',
-          fontWeight: 500,
-          color: '#0F172A',
-          cursor: 'pointer',
-          outline: 'none',
-          boxShadow: 'none',
-          transition: 'border-color 0.15s ease'
-        }}
-        onMouseEnter={(e) => {
-          if (!isOpen) e.currentTarget.style.borderColor = '#94A3B8';
-        }}
-        onMouseLeave={(e) => {
-          if (!isOpen) e.currentTarget.style.borderColor = '#CBD5E1';
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Calendar size={16} color="#1757BF" />
-          <span style={{ color: '#0F172A', fontWeight: 500 }}>{triggerLabel}</span>
-        </div>
-        <span style={{ fontSize: '12px', color: '#64748B' }}>Change</span>
-      </button>
-
-      {/* Dual Calendar Popover */}
-      {isOpen && (
-        <div
+      {!inline && (
+        <button
+          type="button"
+          onClick={() => {
+            setIsOpen((prev) => !prev);
+            setTempStart(startDate);
+            setTempEnd(endDate);
+            setSelectionStage('complete');
+          }}
           style={{
+            width: '100%',
+            height: height || (size === 'sm' ? '35px' : 'auto'),
+            boxSizing: 'border-box',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px',
+            padding: size === 'sm' ? '0 12px' : '10px 16px',
+            borderRadius: '8px',
+            border: isOpen ? '1px solid #1757BF' : '1px solid #CBD5E1',
+            backgroundColor: '#FFFFFF',
+            fontSize: size === 'sm' ? '13px' : '14px',
+            fontWeight: 500,
+            color: '#0F172A',
+            cursor: 'pointer',
+            outline: 'none',
+            boxShadow: isOpen ? '0 0 0 1px #1757BF' : 'none',
+            transition: 'all 0.15s ease',
+            ...buttonStyle
+          }}
+          onMouseEnter={(e) => {
+            if (!isOpen) e.currentTarget.style.borderColor = '#94A3B8';
+          }}
+          onMouseLeave={(e) => {
+            if (!isOpen) e.currentTarget.style.borderColor = '#CBD5E1';
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
+            <Calendar size={size === 'sm' ? 14 : 16} color="#1757BF" style={{ flexShrink: 0 }} />
+            <span style={{
+              color: '#0F172A',
+              fontWeight: 500,
+              fontSize: size === 'sm' ? '13px' : '14px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {triggerLabel}
+            </span>
+          </div>
+          <span style={{ fontSize: '12px', color: '#64748B', flexShrink: 0 }}>Change</span>
+        </button>
+      )}
+
+      {/* Dual Calendar (Inline when inline=true, Popover when inline=false) */}
+      {(inline || isOpen) && (
+        <div
+          style={inline ? {
+            width: '100%',
+            backgroundColor: '#FFFFFF',
+            borderRadius: '12px',
+            border: '1px solid #E2E8F0',
+            padding: '20px 22px',
+            boxSizing: 'border-box',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+          } : {
             position: 'absolute',
             top: 'calc(100% + 6px)',
             left: 0,
@@ -330,7 +379,7 @@ export const AppDateRangePicker = ({
             border: '1px solid #CBD5E1',
             boxShadow: 'none',
             padding: '20px',
-            zIndex: 120
+            zIndex: 10000
           }}
         >
           {/* Quick Presets Strip */}
@@ -728,22 +777,24 @@ export const AppDateRangePicker = ({
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                style={{
-                  padding: '7px 14px',
-                  borderRadius: '6px',
-                  border: '1px solid #CBD5E1',
-                  backgroundColor: '#FFFFFF',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  color: '#475569',
-                  cursor: 'pointer'
-                }}
-              >
-                Cancel
-              </button>
+              {!inline && (
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: '6px',
+                    border: '1px solid #CBD5E1',
+                    backgroundColor: '#FFFFFF',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    color: '#475569',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
 
               <button
                 type="button"
@@ -756,10 +807,14 @@ export const AppDateRangePicker = ({
                   fontSize: '13px',
                   fontWeight: 600,
                   color: '#FFFFFF',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
                 }}
               >
-                Apply Range
+                <Check size={14} />
+                <span>Apply Range</span>
               </button>
             </div>
           </div>

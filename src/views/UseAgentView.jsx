@@ -1234,90 +1234,47 @@ export const UseAgentView = ({ agentData, onBackToList }) => {
                     </p>
                   </div>
 
-                  {/* Right Side Top: Date Selection Action */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <AppDateRangePicker
-                      startDate={customStartDate}
-                      endDate={customEndDate}
-                      width="320px"
-                      onChange={({ startDate, endDate, label }) => {
-                        setCustomStartDate(startDate);
-                        setCustomEndDate(endDate);
-                        if (label && REPORT_DATA_BY_MONTH[label]) {
-                          setSelectedMonth(label);
-                          setRangeType('month');
-                        } else {
-                          const [y, m] = startDate.split('-').map(Number);
-                          const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                          const fullMonthName = `${monthNames[m - 1]} ${y}`;
-                          if (REPORT_DATA_BY_MONTH[fullMonthName]) {
-                            setSelectedMonth(fullMonthName);
-                          }
-                          setRangeType('custom');
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Below: Selected Agent Detail Bit */}
-                <div style={{
-                  backgroundColor: '#F8FAFC',
-                  borderRadius: '12px',
-                  border: '1px solid #E2E8F0',
-                  padding: '20px 22px'
-                }}>
+                  {/* Right Side Top: Reporting Period Badge */}
                   <div style={{
-                    marginBottom: '14px',
-                    paddingBottom: '10px',
-                    borderBottom: '1px solid #E2E8F0'
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    backgroundColor: '#EFF6FF',
+                    borderRadius: '9999px',
+                    border: '1px solid #DBEAFE',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#1757BF'
                   }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>
-                      Selected Agent Details
-                    </div>
+                    <Calendar size={14} color="#1757BF" />
+                    <span>{rangeType === 'month' ? selectedMonth : `${customStartDate} to ${customEndDate}`}</span>
                   </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px 24px', marginBottom: '14px' }}>
-                    <div>
-                      <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginBottom: '4px' }}>
-                        Agent Title
-                      </div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>
-                        {agentData?.title || 'State Bank of India — Monthly Home Loan Portfolio Report'}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginBottom: '4px' }}>
-                        Department / Function
-                      </div>
-                      <div style={{ fontSize: '14px', fontWeight: 500, color: '#0F172A' }}>
-                        {agentData?.department || agentData?.task || 'Mortgage & Home Loan Operations'}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginBottom: '4px' }}>
-                        Reporting Period Selected
-                      </div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#1757BF', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={14} color="#1757BF" />
-                        <span>{rangeType === 'month' ? selectedMonth : `${customStartDate} to ${customEndDate}`}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {agentData?.description && (
-                    <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px', marginTop: '4px' }}>
-                      <div style={{ fontSize: '12px', fontWeight: 500, color: '#64748B', marginBottom: '4px' }}>
-                        Scope & Instructions
-                      </div>
-                      <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
-                        {agentData?.responsibility || agentData?.description}
-                      </div>
-                    </div>
-                  )}
                 </div>
+
+                {/* Inline Opened Dual Calendar replacing Selected Agent Details */}
+                <AppDateRangePicker
+                  inline={true}
+                  startDate={customStartDate}
+                  endDate={customEndDate}
+                  width="100%"
+                  onChange={({ startDate, endDate, label }) => {
+                    setCustomStartDate(startDate);
+                    setCustomEndDate(endDate);
+                    if (label && REPORT_DATA_BY_MONTH[label]) {
+                      setSelectedMonth(label);
+                      setRangeType('month');
+                    } else {
+                      const [y, m] = startDate.split('-').map(Number);
+                      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                      const fullMonthName = `${monthNames[m - 1]} ${y}`;
+                      if (REPORT_DATA_BY_MONTH[fullMonthName]) {
+                        setSelectedMonth(fullMonthName);
+                      }
+                      setRangeType('custom');
+                    }
+                  }}
+                />
 
                 {/* Notes before generating report */}
                 <div>

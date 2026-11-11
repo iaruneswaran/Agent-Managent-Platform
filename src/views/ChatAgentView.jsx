@@ -1,24 +1,47 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  Plus, MessageSquare, ArrowUp, PanelLeft, ArrowLeft, 
+  Plus, MessageSquare, ArrowUp, ArrowLeft, 
   Copy, Check, RotateCcw, ThumbsUp, ThumbsDown, Trash2, 
   Bot, Sparkles, User, Share2
 } from 'lucide-react';
 import { AriaAvatar } from '../components/AriaAvatar';
+import { LoanReportChatWidget } from '../components/LoanReportChatWidget';
 
 const DEFAULT_CONVERSATIONS = [
   {
     id: 'conv-1',
-    title: 'How does the KYC agent work?',
+    title: 'Generate loan report',
     updatedAt: 'Today',
     messages: [
       {
         id: 'm1',
         sender: 'user',
-        text: 'Hi! I am new here. Can you explain what the SBI Customer KYC and Document Verification Agent does and how it handles uploaded IDs?'
+        text: 'Generate loan report'
       },
       {
         id: 'm2',
+        sender: 'assistant',
+        text: `I analyzed your request. To generate and compile this loan report with disbursement analytics and compliance checks, the platform matches your requirement to the pre-built SBI Home Loan Monthly Report agent.
+
+This agent is already created and published under the Retail Banking — Home Finance department. It automates monthly portfolio summaries, calculates sanctioned versus disbursed amounts, and prepares structured reports for human sign-off.
+
+You can enable this agent below to set parameters and generate your custom report directly in the chat:`,
+        hasLoanAgentWidget: true
+      }
+    ]
+  },
+  {
+    id: 'conv-2',
+    title: 'How does the KYC agent work?',
+    updatedAt: 'Yesterday',
+    messages: [
+      {
+        id: 'm3',
+        sender: 'user',
+        text: 'Hi! I am new here. Can you explain what the SBI Customer KYC and Document Verification Agent does and how it handles uploaded IDs?'
+      },
+      {
+        id: 'm4',
         sender: 'assistant',
         text: `Welcome! The SBI Customer KYC and Document Verification Agent is an automated compliance assistant designed to streamline identity verification and audit customer proofs.
 
@@ -31,27 +54,6 @@ It also inspects pixel integrity to detect font splicing, digital manipulation, 
 Finally, it prepares a clean audit summary and flags any discrepancies for mandatory human compliance reviewer sign-off before granting clearance.
 
 Would you like to test a sample document or see how reports are reviewed?`
-      }
-    ]
-  },
-  {
-    id: 'conv-2',
-    title: 'What does the Home Loan agent do?',
-    updatedAt: 'Yesterday',
-    messages: [
-      {
-        id: 'm3',
-        sender: 'user',
-        text: 'What does the SBI Home Loan Monthly Report agent do, and does it submit directly to authorities?'
-      },
-      {
-        id: 'm4',
-        sender: 'assistant',
-        text: `The SBI Home Loan Monthly Report Agent compiles and aggregates monthly housing loan disbursement counts, sanctioned amounts, and portfolio repayment metrics.
-
-It operates under a strict human review safeguard and never submits reports externally on its own. Instead, it prepares a standardized monthly draft for authorized compliance officer review and sign-off.
-
-The agent is strictly limited to home loans, automatically excluding auto, commercial, and land financing. It provides month-over-month comparisons against previous quarters and highlights any discrepancies.`
       }
     ]
   },
@@ -84,14 +86,14 @@ Finally, click Publish agent to make it immediately active for your authorized w
 
 const STARTER_PROMPTS = [
   {
+    icon: '📊',
+    title: 'Generate loan report',
+    prompt: 'Generate loan report'
+  },
+  {
     icon: '🤖',
     title: 'What does the KYC agent do?',
     prompt: 'Can you explain what the SBI Customer KYC and Document Verification Agent does and how it verifies documents?'
-  },
-  {
-    icon: '📊',
-    title: 'How do loan report agents work?',
-    prompt: 'How does the SBI Home Loan Monthly Report agent compile disbursement totals for human review?'
   },
   {
     icon: '🛠️',
@@ -214,12 +216,18 @@ export const ChatAgentView = ({ agentData, onBackToList }) => {
 
     // Simulate conversational intelligent response
     setTimeout(() => {
-      let replyText = generateBotReply(query);
-      const botMsg = {
-        id: `b-${Date.now()}`,
-        sender: 'assistant',
-        text: replyText
-      };
+      let replyData = generateBotReply(query);
+      const botMsg = typeof replyData === 'string'
+        ? {
+            id: `b-${Date.now()}`,
+            sender: 'assistant',
+            text: replyData
+          }
+        : {
+            id: `b-${Date.now()}`,
+            sender: 'assistant',
+            ...replyData
+          };
 
       setConversations((prev) =>
         prev.map((c) => {
@@ -261,6 +269,17 @@ export const ChatAgentView = ({ agentData, onBackToList }) => {
   const generateBotReply = (query) => {
     const q = query.toLowerCase();
 
+    if (q.includes('loan') || q.includes('disbursement') || q.includes('analys') || (q.includes('report') && (q.includes('generate') || q.includes('what agent') || q.includes('home') || q.includes('auto')))) {
+      return {
+        text: `I analyzed your request. To generate and compile this loan report with disbursement analytics and compliance checks, the platform matches your requirement to the pre-built SBI Home Loan Monthly Report agent.
+
+This agent is already created and published under the Retail Banking — Home Finance department. It automates monthly portfolio summaries, calculates sanctioned versus disbursed amounts, and prepares structured reports for human sign-off.
+
+You can enable this agent below to set parameters and generate your custom report directly in the chat:`,
+        hasLoanAgentWidget: true
+      };
+    }
+
     if (q.includes('kyc') || q.includes('document') || q.includes('verification') || q.includes('pan') || q.includes('aadhaar')) {
       return `The SBI Customer KYC and Document Verification Agent is an automated compliance assistant that helps branch and digital operations teams.
 
@@ -279,12 +298,6 @@ Under the Select Agent dropdown, pick what the agent should do, such as Document
 Add the agent title, description, and instructions for how it should perform its duties.
 
 Click Publish agent to deploy it directly to your workspace.`;
-    }
-
-    if (q.includes('loan') || q.includes('report') || q.includes('disbursement') || q.includes('home loan')) {
-      return `The SBI Home Loan Monthly Report Agent compiles and aggregates monthly housing loan disbursement counts, sanctioned totals, and portfolio reviews.
-
-It is limited strictly to home loans and excludes auto and commercial loans. It provides month-over-month performance comparisons and generates clean draft reports for authorized compliance reviewer sign-off before any external submission.`;
     }
 
     return `Agents on this platform are specialized assistants configured for specific business responsibilities, such as verifying identity documents, compiling loan reports, or answering banking inquiries.
@@ -529,39 +542,11 @@ Let me know if you would like more details about any specific agent on the platf
           padding: '0 20px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           flexShrink: 0,
           backgroundColor: '#FFFFFF',
           zIndex: 10
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button
-              type="button"
-              onClick={() => setSidebarOpen((prev) => !prev)}
-              title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-              style={{
-                background: 'none',
-                border: '1px solid #E5E7EB',
-                borderRadius: '8px',
-                padding: '7px 9px',
-                cursor: 'pointer',
-                color: '#4B5563',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.15s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F3F4F6'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            >
-              <PanelLeft size={16} />
-            </button>
-
-            <span style={{ fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>
-              {agentData?.title || 'Ask Wellio AI'}
-            </span>
-          </div>
-
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <button
               type="button"
@@ -596,13 +581,14 @@ Let me know if you would like more details about any specific agent on the platf
         {/* Message Stream Area */}
         <div style={{
           flex: 1,
+          minHeight: 0,
           overflowY: 'auto',
-          padding: '24px 20px 140px',
+          padding: '24px 20px 48px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center'
         }}>
-          <div style={{ width: '100%', maxWidth: '780px' }}>
+          <div style={{ width: '100%', maxWidth: '1000px' }}>
             {/* If Conversation is Empty: Show ChatGPT Welcome Hero */}
             {(!activeConv?.messages || activeConv.messages.length === 0) ? (
               <div style={{
@@ -705,6 +691,7 @@ Let me know if you would like more details about any specific agent on the platf
                       {/* Message Content Bubble */}
                       <div style={{
                         maxWidth: isUser ? '75%' : '100%',
+                        width: isUser ? 'auto' : '100%',
                         backgroundColor: isUser ? '#F1F5F9' : 'transparent',
                         color: '#0F172A',
                         padding: isUser ? '12px 18px' : '4px 0',
@@ -717,6 +704,11 @@ Let me know if you would like more details about any specific agent on the platf
                         <div style={{ whiteSpace: 'pre-line' }}>
                           {cleanText(msg.text)}
                         </div>
+
+                        {/* Interactive Loan Report Agent Widget */}
+                        {msg.hasLoanAgentWidget && (
+                          <LoanReportChatWidget initialEnabled={false} />
+                        )}
 
                         {/* Action Bar for Assistant Messages (Copy, Retry, etc.) */}
                         {!isUser && (
@@ -810,23 +802,19 @@ Let me know if you would like more details about any specific agent on the platf
           </div>
         </div>
 
-        {/* Floating Centered Input Container (ChatGPT Style) */}
+        {/* Docked Bottom Input Container (Seamless, No Divider Line) */}
         <div style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: '0 20px 20px',
-          backgroundColor: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, #FFFFFF 30%)',
+          flexShrink: 0,
+          backgroundColor: '#FFFFFF',
+          padding: '14px 20px 16px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          pointerEvents: 'none'
+          zIndex: 10
         }}>
           <div style={{
             width: '100%',
-            maxWidth: '780px',
-            pointerEvents: 'auto'
+            maxWidth: '1000px'
           }}>
             {/* Input Box */}
             <div style={{
